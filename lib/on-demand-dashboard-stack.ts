@@ -34,7 +34,8 @@ export class OnDemandDashboardStack extends cdk.Stack {
     }
 
     constructor(scope: Construct, id: string, props: cdk.StackProps & {
-        options: Partial<TOnDemandDashboardOptions>
+        // Restrict option parameters
+        options: Partial<Pick<TOnDemandDashboardOptions, "rules" | "showAdminDashboard">>
     }) {
         super(scope, id, props);
         this.options = merge(OnDemandDashboardStack.defaultOptions, props.options)
