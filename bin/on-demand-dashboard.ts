@@ -3,11 +3,11 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import {Duration} from 'aws-cdk-lib';
 import {OnDemandDashboardStack} from '../lib/on-demand-dashboard-stack';
-import {TOnDemandDashboardRules} from "../lib/lambda/types";
+import {TOnDemandDashboardRule} from "../lib/lambda/types";
 
 type PresetRuleName = "Demo1" | "Demo2" | "AllManualExceptODD" | "AllEnabledExceptODD" | "AllEnabled" | "AllDisabled"
 
-const PresetRules: { [key in PresetRuleName]: TOnDemandDashboardRules } = {
+const PresetRules: { [key in PresetRuleName]: TOnDemandDashboardRule[] } = {
     Demo1: [
         {
             ruleName: "Manual",

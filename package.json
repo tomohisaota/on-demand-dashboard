@@ -1,6 +1,6 @@
 {
   "name": "on-demand-dashboard",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0",
   "bin": {
     "cdk-on-demand-dashboard": "bin/on-demand-dashboard.js"
   },
