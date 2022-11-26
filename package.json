@@ -1,0 +1,33 @@
+{
+  "name": "on-demand-dashboard",
+  "version": "1.0.0-beta.1",
+  "bin": {
+    "cdk-on-demand-dashboard": "bin/on-demand-dashboard.js"
+  },
+  "scripts": {
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.108",
+    "@types/lodash": "^4.14.190",
+    "@types/node": "10.17.27",
+    "@types/prettier": "2.6.0",
+    "aws-cdk": "2.51.1",
+    "esbuild": "^0.15.14",
+    "ts-node": "^10.9.1",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^1.4.1",
+    "@aws-sdk/client-cloudwatch": "^3.210.0",
+    "@aws-sdk/client-lambda": "^3.210.0",
+    "@aws-sdk/client-s3": "^3.210.0",
+    "@middy/core": "^3.6.2",
+    "aws-cdk-lib": "2.51.1",
+    "aws-lambda": "^1.0.7",
+    "constructs": "^10.0.0",
+    "dayjs": "^1.11.6",
+    "lodash": "^4.17.21",
+    "source-map-support": "^0.5.21"
+  }
+}
