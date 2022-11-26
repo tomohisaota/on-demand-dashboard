@@ -2,6 +2,7 @@ import {injectLambdaContext, Logger} from '@aws-lambda-powertools/logger'
 import middy from '@middy/core'
 import {ALBResult, Context} from 'aws-lambda'
 import {DashboardManager} from "./DashboardManager"
+import {parseDashboardName} from "./utils";
 
 export type RedirectLambdaEnv = {
     LOG_LEVEL: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR',
@@ -77,25 +78,6 @@ async function lambdaHandlerImpl(httpMethod?: string, dashboardName?: string): P
             Location: url
         }
     }
-}
-
-
-const dashboardNameRegExp = new RegExp("^[A-Za-z0-9_\-]+$")
-
-function parseDashboardName(s?: string): string | undefined {
-    if (!s) {
-        return undefined
-    }
-    const items = s.split("/")
-    if (items.length !== 2) {
-        return undefined
-    }
-    const [_, dashboardName] = items
-    // dashboardName can contain only alphanumerics, dash (-) and underscore (_)
-    if (!dashboardNameRegExp.test(dashboardName)) {
-        return undefined
-    }
-    return dashboardName
 }
 
 // @ts-ignore

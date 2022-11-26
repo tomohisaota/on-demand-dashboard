@@ -1,12 +1,11 @@
 import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
-import localizedFormat from "dayjs/plugin/localizedFormat"
 import {AWSError} from "aws-sdk"
+import {TOnDemandDashboardRule} from "./types";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
-dayjs.extend(localizedFormat)
 
 export function formatDate(params: {
     d?: Date,
@@ -16,8 +15,50 @@ export function formatDate(params: {
         return ""
     }
     return dayjs(params.d)
+        .utc()
         .subtract(params.offsetInMinutes ?? 0, "minutes")
         .format("YYYY-MM-DDTHH:mm:ss")
+}
+
+export function parseDashboardName(path?: string): string | undefined {
+    const dashboardNameRegExp = new RegExp("^[A-Za-z0-9_\-]+$")
+    if (!path) {
+        return undefined
+    }
+    const items = path.split("/")
+    if (items.length !== 2) {
+        return undefined
+    }
+    const [_, dashboardName] = items
+    // dashboardName can contain only alphanumerics, dash (-) and underscore (_)
+    if (!dashboardNameRegExp.test(dashboardName)) {
+        return undefined
+    }
+    return dashboardName
+}
+
+export function matchRule(
+    {
+        dashboardName,
+        onDemandDashboardName,
+        rules,
+        defaultRule
+    }: {
+        dashboardName: string,
+        onDemandDashboardName: string,
+        rules: TOnDemandDashboardRule[],
+        defaultRule: TOnDemandDashboardRule,
+    }) {
+    return rules.find(r => {
+        if (r.matchAll) {
+            return true
+        }
+        if (r.matchODD && (onDemandDashboardName === dashboardName)) {
+            return true
+        }
+        return !!(r.matchByName && (r.matchByName.includes(dashboardName)));
+
+    }) || defaultRule
 }
 
 export function isAWSError(arg: any): arg is AWSError {

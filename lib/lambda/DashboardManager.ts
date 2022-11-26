@@ -1,6 +1,7 @@
 import {Logger} from "@aws-lambda-powertools/logger";
 import {ApiClient, IApiClient, TDashboardEntry} from "./ApiClient";
-import {TOnDemandDashboardRule, TOnDemandDashboardRules} from "./types";
+import {TOnDemandDashboardRule} from "./types";
+import {matchRule} from "./utils";
 
 export type TArchiveState = "Disabled" | "Enabled"
 
@@ -39,11 +40,11 @@ export class DashboardManager {
 
     readonly logger: Logger
     readonly client: IApiClient
-    readonly rules: TOnDemandDashboardRules
+    readonly rules: TOnDemandDashboardRule[]
     readonly onDemandDashboardName?: string
 
     constructor(params: {
-        readonly rules?: TOnDemandDashboardRules
+        readonly rules?: TOnDemandDashboardRule[]
         readonly region: string,
         readonly bucketName: string,
         readonly onDemandDashboardName?: string
@@ -71,16 +72,12 @@ export class DashboardManager {
         dashboards.forEach(i => dashboardNames.add(i.dashboardName))
         archives.forEach(i => dashboardNames.add(i.dashboardName))
         for (const dashboardName of dashboardNames.keys()) {
-            let rule = this.rules.find(r => {
-                if (r.matchAll) {
-                    return true
-                }
-                if (r.matchODD && (this.onDemandDashboardName === dashboardName)) {
-                    return true
-                }
-                return !!(r.matchByName && (r.matchByName.includes(dashboardName)));
-
-            }) || DashboardManager.builtInRule
+            let rule = matchRule({
+                rules: this.rules,
+                defaultRule: DashboardManager.builtInRule,
+                dashboardName,
+                onDemandDashboardName: this.onDemandDashboardName!,
+            })
             const dashboard = dashboards.find(i => i.dashboardName === dashboardName)
             const archive = archives.find(i => i.dashboardName === dashboardName)
             const hasDashboard = dashboard !== undefined

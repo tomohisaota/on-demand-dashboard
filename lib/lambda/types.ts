@@ -17,10 +17,8 @@ export type TOnDemandDashboardRule = ({
     readonly matchByName?: string[]
 }
 
-export type TOnDemandDashboardRules = TOnDemandDashboardRule[]
-
 export type TOnDemandDashboardOptions = {
-    readonly rules: TOnDemandDashboardRules
+    readonly rules: TOnDemandDashboardRule[]
     readonly showAdminDashboard: boolean
     // Undocumented options
     readonly logRetention: RetentionDays,  // Log Retention setting for Lambdas
