@@ -2,6 +2,7 @@ import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import timezone from "dayjs/plugin/timezone"
 import localizedFormat from "dayjs/plugin/localizedFormat"
+import {AWSError} from "aws-sdk"
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -17,6 +18,15 @@ export function formatDate(params: {
     return dayjs(params.d)
         .subtract(params.offsetInMinutes ?? 0, "minutes")
         .format("YYYY-MM-DDTHH:mm:ss")
+}
+
+export function isAWSError(arg: any): arg is AWSError {
+    return (
+        arg !== null &&
+        typeof arg === "object" &&
+        typeof arg.code === "string" &&
+        typeof arg.message === "string"
+    )
 }
 
 // HTML Related
