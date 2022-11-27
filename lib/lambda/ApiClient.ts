@@ -11,7 +11,7 @@ import {
     PutObjectCommand,
     S3Client
 } from "@aws-sdk/client-s3";
-import {isAWSError} from "./utils";
+import {isErrorWithName} from "./utils";
 
 export type TDashboardEntry = {
     dashboardName: string
@@ -153,7 +153,7 @@ export class ApiClient implements IApiClient {
             }))
             return DashboardBody
         } catch (e) {
-            if (isAWSError(e)) {
+            if (isErrorWithName(e)) {
                 if (e.name === 'DashboardNotFoundError') {
                     return undefined
                 }
@@ -182,7 +182,7 @@ export class ApiClient implements IApiClient {
             }
             return Body.transformToString()
         } catch (e) {
-            if (isAWSError(e)) {
+            if (isErrorWithName(e)) {
                 if (e.name === 'NoSuchKey') {
                     return undefined
                 }

@@ -61,12 +61,11 @@ export function matchRule(
     }) || defaultRule
 }
 
-export function isAWSError(arg: any): arg is AWSError {
+export function isErrorWithName(arg: any): arg is AWSError {
     return (
         arg !== null &&
         typeof arg === "object" &&
-        typeof arg.code === "string" &&
-        typeof arg.message === "string"
+        typeof arg.name === "string"
     )
 }
 
