@@ -230,7 +230,7 @@ export class OnDemandDashboardStack extends cdk.Stack {
 
         const fn = new NodejsFunction(this, subId('fn'), {
             functionName: this.options.names.redirectLambda,
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_18_X,
             entry: "lib/lambda/lambda-redirect.ts",
             awsSdkConnectionReuse: true,
             timeout: Duration.minutes(1),
@@ -277,7 +277,7 @@ export class OnDemandDashboardStack extends cdk.Stack {
             functionName: this.options.names.dashboardLambda,
             description: `On Demand Link : ${redirectUrl.url}/${this.options.names.dashboard!}`,
             entry: "lib/lambda/lambda-dashboard.ts",
-            runtime: Runtime.NODEJS_16_X,
+            runtime: Runtime.NODEJS_18_X,
             awsSdkConnectionReuse: true,
             timeout: Duration.minutes(1),
             environment,
