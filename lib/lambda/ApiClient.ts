@@ -12,6 +12,7 @@ import {
     S3Client
 } from "@aws-sdk/client-s3";
 import {isErrorWithName} from "./utils";
+import {Logger} from "@aws-lambda-powertools/logger";
 
 export type TDashboardEntry = {
     dashboardName: string
@@ -40,14 +41,18 @@ export class ApiClient implements IApiClient {
     readonly cloudWatch: CloudWatchClient
     readonly s3: S3Client
 
+    readonly logger: Logger
+
     constructor(params: {
         region: string,
-        bucketName: string
+        bucketName: string,
+        logger: Logger
     }) {
         const {region} = params
         this.cloudWatch = new CloudWatchClient({region})
         this.s3 = new S3Client({region})
         this.bucketName = params.bucketName
+        this.logger = params.logger
     }
 
     async loadEntriesFromCloudWatch(): Promise<TDashboardEntry[]> {
@@ -154,10 +159,11 @@ export class ApiClient implements IApiClient {
             return DashboardBody
         } catch (e) {
             if (isErrorWithName(e)) {
-                if (e.name === 'DashboardNotFoundError') {
+                if (e.name === 'ResourceNotFound') {
                     return undefined
                 }
             }
+            this.logger.warn(`${e}`)
             throw e
         }
     }
@@ -187,6 +193,7 @@ export class ApiClient implements IApiClient {
                     return undefined
                 }
             }
+            this.logger.warn(`${e}`)
             throw e
         }
     }

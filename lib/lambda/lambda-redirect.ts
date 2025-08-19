@@ -1,11 +1,10 @@
-import {injectLambdaContext, Logger} from '@aws-lambda-powertools/logger'
-import middy from '@middy/core'
+import {Logger} from '@aws-lambda-powertools/logger'
 import {ALBResult, Context} from 'aws-lambda'
 import {DashboardManager} from "./DashboardManager"
 import {parseDashboardName} from "./utils";
+import type {LambdaInterface} from "@aws-lambda-powertools/commons/lib/cjs/types";
 
 export type RedirectLambdaEnv = {
-    LOG_LEVEL: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR',
     RULES: string
     BUCKET_NAME: string,
     ON_DEMAND_DASHBOARD_NAME: string
@@ -16,7 +15,6 @@ const env = process.env as RedirectLambdaEnv & {
 }
 
 const logger = new Logger({
-    logLevel: env.LOG_LEVEL,
     serviceName: 'redirect',
 });
 
@@ -28,23 +26,25 @@ const m = new DashboardManager({
     logger,
 })
 
-export async function lambdaHandler(event: {
-    requestContext?: {
-        http?: {
-            path?: string
-            method?: string
+class Lambda implements LambdaInterface {
+    async handler(event: {
+        requestContext?: {
+            http?: {
+                path?: string
+                method?: string
+            }
         }
+    }, context: Context): Promise<ALBResult> {
+        logger.setPersistentLogAttributes({
+            event,
+            context,
+        })
+        const httpMethod = event.requestContext?.http?.method
+        const dashboardName = parseDashboardName(event.requestContext?.http?.path)
+        const r = await lambdaHandlerImpl(httpMethod, dashboardName)
+        logger.info("Redirect", r)
+        return r
     }
-}, context: Context): Promise<ALBResult> {
-    logger.setPersistentLogAttributes({
-        event,
-        context,
-    })
-    const httpMethod = event.requestContext?.http?.method
-    const dashboardName = parseDashboardName(event.requestContext?.http?.path)
-    const r = await lambdaHandlerImpl(httpMethod, dashboardName)
-    logger.info("Redirect", r)
-    return r
 }
 
 async function lambdaHandlerImpl(httpMethod?: string, dashboardName?: string): Promise<{
@@ -80,8 +80,5 @@ async function lambdaHandlerImpl(httpMethod?: string, dashboardName?: string): P
     }
 }
 
-// @ts-ignore
-export const handler = middy(lambdaHandler)
-    .use(injectLambdaContext(logger, {
-        clearState: true
-    }));
+const f = new Lambda();
+export const handler = f.handler.bind(f)
