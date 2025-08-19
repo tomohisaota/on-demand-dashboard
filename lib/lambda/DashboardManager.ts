@@ -49,16 +49,15 @@ export class DashboardManager {
         readonly bucketName: string,
         readonly onDemandDashboardName?: string
         readonly client?: IApiClient,
-        readonly logger?: Logger,
+        readonly logger: Logger,
     }) {
         this.rules = params.rules ?? []
         this.onDemandDashboardName = params.onDemandDashboardName
-        this.logger = params.logger ?? new Logger({
-            logLevel: "INFO"
-        })
+        this.logger = params.logger
         this.client = params.client ?? new ApiClient({
             region: params.region,
-            bucketName: params.bucketName
+            bucketName: params.bucketName,
+            logger: params.logger,
         })
     }
 

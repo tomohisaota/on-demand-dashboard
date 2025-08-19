@@ -6,7 +6,7 @@ import {CustomWidget, Dashboard, LogQueryWidget, TextWidget} from "aws-cdk-lib/a
 import {ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
 import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
-import {FunctionUrlAuthType, Runtime} from "aws-cdk-lib/aws-lambda";
+import {ApplicationLogLevel, FunctionUrlAuthType, LoggingFormat, Runtime, SystemLogLevel} from "aws-cdk-lib/aws-lambda";
 import {Rule, RuleTargetInput, Schedule} from "aws-cdk-lib/aws-events";
 import {LambdaFunction} from "aws-cdk-lib/aws-events-targets";
 import {FunctionUrl} from "aws-cdk-lib/aws-lambda/lib/function-url";
@@ -160,7 +160,9 @@ export class OnDemandDashboardStack extends cdk.Stack {
                                     headers.join("|"),
                                     headers.map(() => "-----").join("|"),
                                     ...this.options.rules.concat([DashboardManager.builtInRule]).map((r, i) => {
-                                        const rObj = (r as any) as { [key: string]: string | string[] | boolean | number }
+                                        const rObj = (r as any) as {
+                                            [key: string]: string | string[] | boolean | number
+                                        }
                                         const items: string[] = [`${i + 1}`]
                                         for (const key of keys) {
                                             items.push(((): string => {
@@ -222,7 +224,6 @@ export class OnDemandDashboardStack extends cdk.Stack {
         }
 
         const environment: RedirectLambdaEnv = {
-            LOG_LEVEL: "DEBUG",
             RULES: JSON.stringify(this.options.rules),
             BUCKET_NAME: bucket.bucketName,
             ON_DEMAND_DASHBOARD_NAME: this.options.names.dashboard!,
@@ -230,10 +231,13 @@ export class OnDemandDashboardStack extends cdk.Stack {
 
         const fn = new NodejsFunction(this, subId('fn'), {
             functionName: this.options.names.redirectLambda,
-            runtime: Runtime.NODEJS_18_X,
+            runtime: Runtime.NODEJS_22_X,
             entry: "lib/lambda/lambda-redirect.ts",
             awsSdkConnectionReuse: true,
             timeout: Duration.minutes(1),
+            loggingFormat: LoggingFormat.JSON,
+            systemLogLevelV2: SystemLogLevel.INFO,
+            applicationLogLevelV2: ApplicationLogLevel.INFO,
             environment,
             role,
         })
@@ -266,7 +270,6 @@ export class OnDemandDashboardStack extends cdk.Stack {
         }
 
         const environment: DashboardLambdaEnv = {
-            LOG_LEVEL: "DEBUG",
             RULES: JSON.stringify(this.options.rules),
             BUCKET_NAME: bucket.bucketName,
             REDIRECT_URL: redirectUrl.url,
@@ -277,9 +280,12 @@ export class OnDemandDashboardStack extends cdk.Stack {
             functionName: this.options.names.dashboardLambda,
             description: `On Demand Link : ${redirectUrl.url}/${this.options.names.dashboard!}`,
             entry: "lib/lambda/lambda-dashboard.ts",
-            runtime: Runtime.NODEJS_18_X,
+            runtime: Runtime.NODEJS_22_X,
             awsSdkConnectionReuse: true,
             timeout: Duration.minutes(1),
+            loggingFormat: LoggingFormat.JSON,
+            systemLogLevelV2: SystemLogLevel.INFO,
+            applicationLogLevelV2: ApplicationLogLevel.INFO,
             environment,
             role,
         })

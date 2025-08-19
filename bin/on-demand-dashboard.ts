@@ -86,7 +86,7 @@ const PresetRules: { [key in PresetRuleName]: TOnDemandDashboardRule[] } = {
 const app = new cdk.App();
 new OnDemandDashboardStack(app, 'OnDemandDashboard', {
     options: {
-        rules: PresetRules.Demo1,
+        rules: PresetRules.AllEnabledExceptODD,
         showAdminDashboard: true,
     }
 });
