@@ -35,7 +35,7 @@ class Lambda implements LambdaInterface {
             }
         }
     }, context: Context): Promise<ALBResult> {
-        logger.setPersistentLogAttributes({
+        logger.appendKeys({
             event,
             context,
         })

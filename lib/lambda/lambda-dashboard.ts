@@ -71,7 +71,7 @@ class Lambda implements LambdaInterface {
 
         const {action, widgetContext} = event
         const {invokedFunctionArn} = context
-        logger.setPersistentLogAttributes({
+        logger.appendKeys({
             action,
             event,
             context,
