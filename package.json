@@ -1,6 +1,6 @@
 {
   "name": "on-demand-dashboard",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "bin": {
     "cdk-on-demand-dashboard": "bin/on-demand-dashboard.js"
   },
@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.28.1",
+    "@aws-sdk/client-cloudformation": "^3.1050.0",
     "@aws-sdk/client-cloudwatch": "^3.927.0",
     "@aws-sdk/client-lambda": "^3.927.0",
     "@aws-sdk/client-s3": "^3.927.0",

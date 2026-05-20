@@ -13,6 +13,7 @@ import {FunctionUrl} from "aws-cdk-lib/aws-lambda/lib/function-url";
 import {merge} from 'lodash'
 import {RedirectLambdaEnv} from "./lambda/lambda-redirect";
 import {DashboardLambdaEnv} from "./lambda/lambda-dashboard";
+import {StackEventLambdaEnv} from "./lambda/lambda-stack-event";
 import {TOnDemandDashboardOptions} from "./lambda/types";
 import {DashboardManager, TAction} from "./lambda/DashboardManager";
 
@@ -70,6 +71,16 @@ export class OnDemandDashboardStack extends cdk.Stack {
                         ]
                     })]
                 }),
+                cloudformation: new PolicyDocument({
+                    statements: [new PolicyStatement({
+                        actions: [
+                            "cloudformation:DescribeStackResources",
+                        ],
+                        resources: [
+                            "*"
+                        ]
+                    })]
+                }),
                 s3: new PolicyDocument({
                     statements: [
                         new PolicyStatement({
@@ -106,6 +117,11 @@ export class OnDemandDashboardStack extends cdk.Stack {
             bucket,
             role,
             redirectUrl,
+        })
+
+        const {fn: stackEventFn, logGroup: stackEventLogGroup} = this.createStackEventHandler({
+            bucket,
+            role,
         })
 
 
@@ -148,6 +164,7 @@ export class OnDemandDashboardStack extends cdk.Stack {
                                     `role|${role.roleName}`,
                                     `dashboard lambda|${dashboardFn.functionName}`,
                                     `redirect lambda|${redirectFn.functionName}`,
+                                    `stack event lambda|${stackEventFn.functionName}`,
                                 )
 
                                 lines.push("")
@@ -201,6 +218,7 @@ export class OnDemandDashboardStack extends cdk.Stack {
                             logGroupNames: [
                                 dashboardLogGroup.logGroupName,
                                 redirectLogGroup.logGroupName,
+                                stackEventLogGroup.logGroupName,
                             ]
                         }),
                     ]
@@ -304,6 +322,62 @@ export class OnDemandDashboardStack extends cdk.Stack {
                 event: RuleTargetInput.fromObject({action: scheduledJobAction})
             })],
             schedule: this.options.jobSchedule
+        })
+
+        return {fn, logGroup}
+    }
+
+    createStackEventHandler(params: {
+        readonly bucket: Bucket,
+        readonly role: Role,
+    }): {
+        fn: NodejsFunction,
+        logGroup: LogGroup,
+    } {
+        const {role, bucket} = params
+
+        function subId(s: string): string {
+            return `stack-event-${s}`
+        }
+
+        const environment: StackEventLambdaEnv = {
+            BUCKET_NAME: bucket.bucketName,
+        }
+
+        const fn = new NodejsFunction(this, subId('fn'), {
+            functionName: this.options.names.stackEventLambda,
+            entry: "lib/lambda/lambda-stack-event.ts",
+            runtime: Runtime.NODEJS_22_X,
+            awsSdkConnectionReuse: true,
+            timeout: Duration.minutes(1),
+            loggingFormat: LoggingFormat.JSON,
+            systemLogLevelV2: SystemLogLevel.INFO,
+            applicationLogLevelV2: ApplicationLogLevel.INFO,
+            environment,
+            role,
+        })
+
+        const logGroup = new LogGroup(this, subId('log-group'), {
+            logGroupName: `/aws/lambda/${fn.functionName}`,
+            removalPolicy: RemovalPolicy.DESTROY,
+            retention: this.options.logRetention,
+        })
+
+        new Rule(this, subId("rule"), {
+            eventPattern: {
+                source: ["aws.cloudformation"],
+                detailType: ["CloudFormation Stack Status Change"],
+                detail: {
+                    "status-details": {
+                        status: [
+                            "UPDATE_IN_PROGRESS",
+                            "DELETE_IN_PROGRESS",
+                            "DELETE_COMPLETE",
+                        ],
+                    },
+                },
+            },
+            targets: [new LambdaFunction(fn)],
         })
 
         return {fn, logGroup}
