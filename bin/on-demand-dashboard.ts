@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import {Duration} from 'aws-cdk-lib';
 import {OnDemandDashboardStack} from '../lib/on-demand-dashboard-stack';
+import {TestDashboardStack} from '../lib/test-dashboard-stack';
 import {TOnDemandDashboardRule} from "../lib/lambda/types";
 
 type PresetRuleName = "Demo1" | "Demo2" | "AllManualExceptODD" | "AllEnabledExceptODD" | "AllEnabled" | "AllDisabled"
@@ -90,3 +91,5 @@ new OnDemandDashboardStack(app, 'OnDemandDashboard', {
         showAdminDashboard: true,
     }
 });
+
+new TestDashboardStack(app, 'TestDashboard');
