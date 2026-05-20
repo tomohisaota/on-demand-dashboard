@@ -119,11 +119,19 @@ export class ApiClient implements IApiClient {
 
     async deleteCloudwatch(dashboardName: string) {
         const {cloudWatch} = this
-        await cloudWatch.send(new DeleteDashboardsCommand({
-            DashboardNames: [
-                dashboardName
-            ]
-        }))
+        try {
+            await cloudWatch.send(new DeleteDashboardsCommand({
+                DashboardNames: [
+                    dashboardName
+                ]
+            }))
+        } catch (e) {
+            if (isErrorWithName(e) && e.name === 'ResourceNotFound') {
+                return
+            }
+            this.logger.warn(`${e}`)
+            throw e
+        }
     }
 
     async archiveToCloudWatch(dashboardName: string) {

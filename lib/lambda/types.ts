@@ -30,6 +30,7 @@ export type TOnDemandDashboardOptions = {
         readonly bucket?: string
         readonly dashboardLambda?: string,
         readonly redirectLambda?: string
+        readonly stackEventLambda?: string
     }
     readonly version: string
 }
